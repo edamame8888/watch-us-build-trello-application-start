@@ -1,45 +1,49 @@
 <template>
+  <AppDrop @drop="moveTaskOrColumn">
+    <AppDrag
+      class="column"
+      :transferData="{
+        type: 'column',
+        fromColumnIndex: columnIndex
+      }"
+    >
+      <div class="flex items-center mb-2 font-bold">{{ column.name }}</div>
 
-  <div
-    class="column"
-    draggable
-    @drop="moveTaskOrColumn($event, column.tasks, columnIndex)"
-    @dragover.prevent
-    @dragenter.prevent
-    @dragstart.self="pickupColumn($event, columnIndex)"
-  >
-    <div class="flex items-center mb-2 font-bold">{{ column.name }}</div>
+      <div class="list-reset">
+        <ColumnTask
+          v-for="(task, $taskIndex) of column.tasks"
+          :key="$taskIndex"
+          :task="task"
+          :taskIndex="$taskIndex"
+          :column="column"
+          :columnIndex="columnIndex"
+          :board="board"
+        />
 
-    <div class="list-reset">
-      <ColumnTask
-        v-for="(task, $taskIndex) of column.tasks"
-        :key="$taskIndex"
-        :task="task"
-        :taskIndex="$taskIndex"
-        :column="column"
-        :columnIndex="columnIndex"
-        :board="board"
-      />
+        <input
+          type="text"
+          class="block p-2 w-full bg-transparent"
+          placeholder="+ Enter new task"
+          @keyup.enter="createTask($event, column.tasks)"
+        />
 
-      <input
-        type="text"
-        class="block p-2 w-full bg-transparent"
-        placeholder="+ Enter new task"
-        @keyup.enter="createTask($event, column.tasks)"
-      />
-
-    </div>
-  </div>
-
+      </div>
+    </AppDrag>
+  </AppDrop>
 </template>
 
 <script>
 import ColumnTask from './ColumnTask'
 import movingTasksAndColumnsMixin from '@/mixins/movingTasksAndColumnsMixin'
+import AppDrag from './AppDrag'
+import AppDrop from './AppDrop'
+
 export default {
   mixins: [movingTasksAndColumnsMixin],
   components: {
-    ColumnTask
+    ColumnTask,
+    AppDrag,
+    AppDrop
   },
   props: {},
   methods: {
@@ -49,14 +53,6 @@ export default {
 
       e.dataTransfer.setData('from-column-index', fromColumnIndex)
       e.dataTransfer.setData('type', 'column')
-    },
-    moveTaskOrColumn (e, toTasks, toColumnIndex, toTaskIndex) {
-      const type = e.dataTransfer.getData('type')
-      if (type === 'task') {
-        this.moveTask(e, toTasks, toTaskIndex !== undefined ? toTaskIndex : toTasks.length)
-      } else {
-        this.moveColumn(e, toColumnIndex)
-      }
     }
   }
 }
